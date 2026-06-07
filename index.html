@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio Updater</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f12;
+    --surface: #151820;
+    --border: #222530;
+    --border-hover: #353a4a;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --green: #22c55e;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --accent: #6366f1;
+    --accent-dim: rgba(99,102,241,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+  .container { max-width: 480px; margin: 0 auto; }
+
+  /* Header */
+  .header { margin-bottom: 32px; }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .header p { font-size: 12px; color: var(--muted); margin-top: 4px; font-family: 'DM Mono', monospace; }
+
+  /* Token setup */
+  .setup-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+  .setup-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; font-family: 'DM Mono', monospace; }
+  .setup-row { display: flex; gap: 8px; }
+  .setup-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .setup-input:focus { border-color: var(--accent); }
+  .setup-input::placeholder { color: var(--muted); }
+  .btn-save-token {
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    color: #a5b4fc;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .btn-save-token:hover { background: rgba(99,102,241,0.22); }
+  .token-status { font-size: 11px; margin-top: 6px; font-family: 'DM Mono', monospace; }
+  .token-ok { color: var(--green); }
+  .token-missing { color: var(--amber); }
+
+  /* Date row */
+  .date-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .date-label { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .date-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    outline: none;
+  }
+
+  /* Stock rows */
+  .section-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+    font-family: 'DM Mono', monospace;
+  }
+  .stock-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .stock-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: border-color 0.15s;
+  }
+  .stock-row:focus-within { border-color: var(--border-hover); }
+  .ticker {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    width: 44px;
+    flex-shrink: 0;
+    color: var(--text);
+  }
+  .prev-price {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    flex: 1;
+    text-align: right;
+  }
+  .arrow { color: var(--border-hover); font-size: 12px; flex-shrink: 0; }
+  .price-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px 10px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    width: 100px;
+    text-align: right;
+    outline: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .price-input:focus { border-color: var(--accent); }
+  .pl-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    min-width: 52px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .pl-pos { color: var(--green); }
+  .pl-neg { color: var(--red); }
+  .pl-flat { color: var(--muted); }
+
+  /* Notes row */
+  .notes-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 24px;
+  }
+  .notes-label { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 6px; }
+  .notes-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    outline: none;
+    resize: none;
+    line-height: 1.5;
+    min-height: 48px;
+  }
+  .notes-input::placeholder { color: var(--muted); }
+
+  /* Submit */
+  .btn-submit {
+    width: 100%;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 14px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: -0.01em;
+  }
+  .btn-submit:hover { opacity: 0.88; }
+  .btn-submit:active { transform: scale(0.99); }
+  .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Status */
+  .status-msg {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    display: none;
+  }
+  .status-msg.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: var(--green); display: block; }
+  .status-msg.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--red); display: block; }
+  .status-msg.loading { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc; display: block; }
+
+  /* Summary bar */
+  .summary-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .summary-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+  }
+  .chip-label { color: var(--muted); display: block; margin-bottom: 2px; }
+  .chip-val { color: var(--text); font-size: 13px; font-weight: 500; }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  /* Config section */
+  .config-toggle {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    background: none;
+    border: none;
+    padding: 0;
+    margin-bottom: 12px;
+  }
+  .config-section { display: none; }
+  .config-section.open { display: block; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Portfolio Updater</h1>
+    <p id="last-updated-label">Loading...</p>
+  </div>
+
+  <!-- GitHub config (collapsed by default if token saved) -->
+  <button class="config-toggle" onclick="toggleConfig()">⚙ GitHub config</button>
+  <div class="config-section" id="config-section">
+    <div class="setup-box">
+      <div class="setup-label">GitHub username</div>
+      <div class="setup-row" style="margin-bottom:10px">
+        <input class="setup-input" id="gh-user" placeholder="your_github_username">
+      </div>
+      <div class="setup-label">Repository name</div>
+      <div class="setup-row" style="margin-bottom:10px">
+        <input class="setup-input" id="gh-repo" placeholder="portfolio-tracker">
+      </div>
+      <div class="setup-label">JSON filename</div>
+      <div class="setup-row" style="margin-bottom:10px">
+        <input class="setup-input" id="gh-file" placeholder="danny_portfolio.json">
+      </div>
+      <div class="setup-label">Personal Access Token <span style="color:var(--amber)">(stored in browser only)</span></div>
+      <div class="setup-row">
+        <input class="setup-input" id="gh-token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+        <button class="btn-save-token" onclick="saveConfig()">Save</button>
+      </div>
+      <div class="token-status" id="token-status"></div>
+    </div>
+  </div>
+
+  <!-- Date -->
+  <div class="date-row">
+    <span class="date-label">Update date</span>
+    <input class="date-input" type="date" id="update-date">
+  </div>
+
+  <!-- Summary chips (computed live) -->
+  <div class="summary-bar">
+    <div class="summary-chip">
+      <span class="chip-label">Portfolio est.</span>
+      <span class="chip-val" id="chip-total">—</span>
+    </div>
+    <div class="summary-chip">
+      <span class="chip-label">Unrealized P/L</span>
+      <span class="chip-val" id="chip-pl">—</span>
+    </div>
+    <div class="summary-chip">
+      <span class="chip-label">Cash</span>
+      <span class="chip-val" id="chip-cash">—</span>
+    </div>
+  </div>
+
+  <!-- Holdings -->
+  <div class="section-label">Holdings — enter today's closing price</div>
+  <div class="stock-grid" id="stock-grid">
+    <!-- injected by JS -->
+  </div>
+
+  <hr class="divider">
+
+  <!-- Notes -->
+  <div class="notes-box">
+    <div class="notes-label">Session notes (trades, observations)</div>
+    <textarea class="notes-input" id="session-notes" rows="3" placeholder="e.g. Bought SSI 500sh @26800. MWG dipped to 74k but didn't act."></textarea>
+  </div>
+
+  <!-- Submit -->
+  <button class="btn-submit" id="btn-submit" onclick="submitUpdate()">Save to GitHub</button>
+  <div class="status-msg" id="status-msg"></div>
+
+</div>
+
+<script>
+// ── Config ──────────────────────────────────────────────────
+const STORAGE_KEY = 'pf_config';
+
+function loadConfig() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; }
+}
+function saveConfig() {
+  const cfg = {
+    user: document.getElementById('gh-user').value.trim(),
+    repo: document.getElementById('gh-repo').value.trim(),
+    file: document.getElementById('gh-file').value.trim() || 'danny_portfolio.json',
+    token: document.getElementById('gh-token').value.trim()
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
+  showTokenStatus(cfg.token);
+  toggleConfig(); // close after save
+}
+function showTokenStatus(token) {
+  const el = document.getElementById('token-status');
+  if (token) {
+    el.textContent = '✓ Token saved in browser';
+    el.className = 'token-status token-ok';
+  } else {
+    el.textContent = '⚠ No token — read-only mode';
+    el.className = 'token-status token-missing';
+  }
+}
+function toggleConfig() {
+  const s = document.getElementById('config-section');
+  s.classList.toggle('open');
+}
+
+// ── Portfolio data ──────────────────────────────────────────
+let portfolioData = null;
+let sha = null; // GitHub blob SHA needed for update
+
+async function fetchPortfolio() {
+  const cfg = loadConfig();
+  if (!cfg.user || !cfg.repo) {
+    document.getElementById('last-updated-label').textContent = 'Configure GitHub above first';
+    document.getElementById('config-section').classList.add('open');
+    fillConfigForm(cfg);
+    return;
+  }
+  fillConfigForm(cfg);
+  showTokenStatus(cfg.token);
+
+  const apiUrl = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file || 'danny_portfolio.json'}`;
+  const headers = { 'Accept': 'application/vnd.github.v3+json' };
+  if (cfg.token) headers['Authorization'] = `token ${cfg.token}`;
+
+  try {
+    const res = await fetch(apiUrl, { headers });
+    if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+    const json = await res.json();
+    sha = json.sha;
+    portfolioData = JSON.parse(atob(json.content.replace(/\n/g, '')));
+    renderPortfolio();
+  } catch (e) {
+    document.getElementById('last-updated-label').textContent = 'Error loading: ' + e.message;
+  }
+}
+
+function fillConfigForm(cfg) {
+  document.getElementById('gh-user').value = cfg.user || '';
+  document.getElementById('gh-repo').value = cfg.repo || '';
+  document.getElementById('gh-file').value = cfg.file || 'danny_portfolio.json';
+  document.getElementById('gh-token').value = cfg.token || '';
+}
+
+function renderPortfolio() {
+  const p = portfolioData;
+  document.getElementById('last-updated-label').textContent = `last updated: ${p.meta.last_updated}`;
+
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('update-date').value = today;
+
+  const grid = document.getElementById('stock-grid');
+  grid.innerHTML = '';
+
+  p.holdings.forEach(h => {
+    const row = document.createElement('div');
+    row.className = 'stock-row';
+
+    const pl = ((h.current_price - h.avg_cost) / h.avg_cost * 100).toFixed(2);
+    const plClass = pl > 0 ? 'pl-pos' : pl < 0 ? 'pl-neg' : 'pl-flat';
+    const plText = (pl > 0 ? '+' : '') + pl + '%';
+
+    row.innerHTML = `
+      <span class="ticker">${h.ticker}</span>
+      <span class="prev-price">${h.current_price.toLocaleString()}</span>
+      <span class="arrow">→</span>
+      <input class="price-input" type="number" id="price-${h.ticker}"
+        value="${h.current_price}" min="1"
+        oninput="recalcRow('${h.ticker}', ${h.avg_cost}, ${h.shares})">
+      <span class="pl-badge ${plClass}" id="pl-${h.ticker}">${plText}</span>
+    `;
+    grid.appendChild(row);
+  });
+
+  recalcSummary();
+}
+
+function recalcRow(ticker, avgCost, shares) {
+  const input = document.getElementById(`price-${ticker}`);
+  const pl = ((input.value - avgCost) / avgCost * 100).toFixed(2);
+  const plEl = document.getElementById(`pl-${ticker}`);
+  plEl.textContent = (pl > 0 ? '+' : '') + pl + '%';
+  plEl.className = 'pl-badge ' + (pl > 0 ? 'pl-pos' : pl < 0 ? 'pl-neg' : 'pl-flat');
+  recalcSummary();
+}
+
+function recalcSummary() {
+  if (!portfolioData) return;
+  let stockVal = 0;
+  let totalCost = 0;
+  portfolioData.holdings.forEach(h => {
+    const priceEl = document.getElementById(`price-${h.ticker}`);
+    const price = priceEl ? parseFloat(priceEl.value) || h.current_price : h.current_price;
+    stockVal += price * h.shares;
+    totalCost += h.avg_cost * h.shares;
+  });
+  const cash = portfolioData.summary.cash;
+  const total = stockVal + cash;
+  const unrealized = ((stockVal - totalCost) / totalCost * 100).toFixed(2);
+
+  document.getElementById('chip-total').textContent = (total / 1e9).toFixed(3) + 'B';
+  document.getElementById('chip-pl').textContent = (unrealized > 0 ? '+' : '') + unrealized + '%';
+  document.getElementById('chip-cash').textContent = (cash / 1e6).toFixed(1) + 'M';
+}
+
+// ── Submit ───────────────────────────────────────────────────
+async function submitUpdate() {
+  const cfg = loadConfig();
+  if (!cfg.token) { showStatus('error', 'No GitHub token saved. Configure above.'); return; }
+  if (!portfolioData) { showStatus('error', 'Portfolio data not loaded.'); return; }
+
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  showStatus('loading', 'Saving to GitHub...');
+
+  const date = document.getElementById('update-date').value;
+  const notes = document.getElementById('session-notes').value.trim();
+
+  // Update holdings prices
+  portfolioData.holdings.forEach(h => {
+    const input = document.getElementById(`price-${h.ticker}`);
+    if (input) {
+      const newPrice = parseInt(input.value);
+      if (!isNaN(newPrice) && newPrice > 0) {
+        h.pl_pct = parseFloat(((newPrice - h.avg_cost) / h.avg_cost * 100).toFixed(2));
+        h.current_price = newPrice;
+      }
+    }
+  });
+
+  // Recalc portfolio summary
+  let stockVal = 0;
+  portfolioData.holdings.forEach(h => { stockVal += h.current_price * h.shares; });
+  const total = stockVal + portfolioData.summary.cash;
+  const stockCost = portfolioData.holdings.reduce((s, h) => s + h.avg_cost * h.shares, 0);
+  const unrealized = parseFloat(((stockVal - stockCost) / stockCost * 100).toFixed(2));
+
+  // Add performance log entry
+  const prevLog = portfolioData.performance_log[0];
+  const prevTotal = prevLog ? prevLog.total_value : total;
+  const dayMove = parseFloat(((total - prevTotal) / prevTotal * 100).toFixed(2));
+
+  portfolioData.performance_log.unshift({
+    date,
+    total_value: Math.round(total),
+    day_move_pct: dayMove,
+    cash_pct: parseFloat((portfolioData.summary.cash / total * 100).toFixed(2)),
+    net_unrealized_pct: unrealized,
+    notes: notes || 'Daily update'
+  });
+
+  portfolioData.meta.last_updated = date;
+  portfolioData.summary.total_value = Math.round(total);
+  portfolioData.summary.stock_value = Math.round(stockVal);
+  portfolioData.summary.cash_pct = parseFloat((portfolioData.summary.cash / total * 100).toFixed(2));
+  portfolioData.summary.net_unrealized_pct = unrealized;
+
+  // Push to GitHub
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(portfolioData, null, 2))));
+  const apiUrl = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file || 'danny_portfolio.json'}`;
+
+  try {
+    const res = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${cfg.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `Portfolio update ${date}`,
+        content,
+        sha
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || `Status ${res.status}`);
+    }
+    const result = await res.json();
+    sha = result.content.sha;
+    showStatus('success', `✓ Saved to GitHub — ${date}. Ready for Claude analysis.`);
+    document.getElementById('session-notes').value = '';
+  } catch (e) {
+    showStatus('error', 'Error: ' + e.message);
+  }
+  btn.disabled = false;
+}
+
+function showStatus(type, msg) {
+  const el = document.getElementById('status-msg');
+  el.className = 'status-msg ' + type;
+  el.textContent = msg;
+}
+
+// ── Init ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', fetchPortfolio);
+</script>
+</body>
+</html>
