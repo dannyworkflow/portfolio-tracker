@@ -3,553 +3,951 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portfolio Updater</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>Portfolio Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  :root {
-    --bg: #0d0f12;
-    --surface: #151820;
-    --border: #222530;
-    --border-hover: #353a4a;
-    --text: #e8eaf0;
-    --muted: #6b7280;
-    --green: #22c55e;
-    --red: #ef4444;
-    --amber: #f59e0b;
-    --accent: #6366f1;
-    --accent-dim: rgba(99,102,241,0.12);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Sora', sans-serif;
-    font-weight: 300;
-    min-height: 100vh;
-    padding: 24px 16px 60px;
-  }
-  .container { max-width: 480px; margin: 0 auto; }
+:root {
+  --bg:#0d0f12; --s:#151820; --s2:#1c2030; --b:#222530; --bh:#353a4a;
+  --t:#e8eaf0; --m:#6b7280; --m2:#9ca3af;
+  --green:#22c55e; --red:#ef4444; --amber:#f59e0b; --blue:#6366f1; --teal:#14b8a6;
+  --gd:rgba(34,197,94,0.12); --rd:rgba(239,68,68,0.12); --bd:rgba(99,102,241,0.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--t);font-family:'Sora',sans-serif;font-weight:300;min-height:100vh;}
+.app{display:flex;height:100vh;overflow:hidden;}
 
-  /* Header */
-  .header { margin-bottom: 32px; }
-  .header h1 {
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: var(--text);
-  }
-  .header p { font-size: 12px; color: var(--muted); margin-top: 4px; font-family: 'DM Mono', monospace; }
+/* Sidebar */
+.sidebar{width:200px;flex-shrink:0;background:var(--s);border-right:1px solid var(--b);display:flex;flex-direction:column;padding:20px 0;}
+.logo{padding:0 20px 24px;font-size:14px;font-weight:600;letter-spacing:-0.02em;border-bottom:1px solid var(--b);}
+.logo span{color:var(--blue);}
+.nav{padding:16px 12px;flex:1;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:12px;color:var(--m2);cursor:pointer;transition:all 0.15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;}
+.nav-item:hover{background:var(--s2);color:var(--t);}
+.nav-item.active{background:var(--bd);color:#a5b4fc;}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;}
+.config-btn{margin:0 12px 12px;padding:9px 10px;border-radius:8px;font-size:11px;color:var(--m);cursor:pointer;border:1px solid var(--b);background:none;font-family:'DM Mono',monospace;text-align:left;transition:all 0.15s;}
+.config-btn:hover{border-color:var(--bh);color:var(--t);}
 
-  /* Token setup */
-  .setup-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 24px;
-  }
-  .setup-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; font-family: 'DM Mono', monospace; }
-  .setup-row { display: flex; gap: 8px; }
-  .setup-input {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 12px;
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  .setup-input:focus { border-color: var(--accent); }
-  .setup-input::placeholder { color: var(--muted); }
-  .btn-save-token {
-    background: var(--accent-dim);
-    border: 1px solid var(--accent);
-    border-radius: 8px;
-    color: #a5b4fc;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    padding: 10px 14px;
-    cursor: pointer;
-    transition: background 0.15s;
-    white-space: nowrap;
-  }
-  .btn-save-token:hover { background: rgba(99,102,241,0.22); }
-  .token-status { font-size: 11px; margin-top: 6px; font-family: 'DM Mono', monospace; }
-  .token-ok { color: var(--green); }
-  .token-missing { color: var(--amber); }
+/* Main */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.topbar{padding:16px 28px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.page-title{font-size:15px;font-weight:600;}
+.last-sync{font-size:11px;color:var(--m);font-family:'DM Mono',monospace;}
+.content{padding:24px 28px;flex:1;}
 
-  /* Date row */
-  .date-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .date-label { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
-  .date-input {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 6px 10px;
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    outline: none;
-  }
+/* Pages */
+.page{display:none;}
+.page.active{display:block;}
 
-  /* Stock rows */
-  .section-label {
-    font-size: 11px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 12px;
-    font-family: 'DM Mono', monospace;
-  }
-  .stock-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
-  .stock-row {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: border-color 0.15s;
-  }
-  .stock-row:focus-within { border-color: var(--border-hover); }
-  .ticker {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    font-weight: 500;
-    width: 44px;
-    flex-shrink: 0;
-    color: var(--text);
-  }
-  .prev-price {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    flex: 1;
-    text-align: right;
-  }
-  .arrow { color: var(--border-hover); font-size: 12px; flex-shrink: 0; }
-  .price-input {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    padding: 8px 10px;
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    font-weight: 500;
-    width: 100px;
-    text-align: right;
-    outline: none;
-    transition: border-color 0.15s, color 0.15s;
-  }
-  .price-input:focus { border-color: var(--accent); }
-  .pl-badge {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    min-width: 52px;
-    text-align: right;
-    flex-shrink: 0;
-  }
-  .pl-pos { color: var(--green); }
-  .pl-neg { color: var(--red); }
-  .pl-flat { color: var(--muted); }
+/* Config modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--s);border:1px solid var(--b);border-radius:16px;padding:24px;width:420px;max-width:95vw;}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:16px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:11px;color:var(--m);font-family:'DM Mono',monospace;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.06em;}
+.field input,.field select,.field textarea{width:100%;background:var(--bg);border:1px solid var(--b);border-radius:8px;padding:9px 12px;color:var(--t);font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color 0.15s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);}
+.field input::placeholder{color:var(--m);}
+.btn-row{display:flex;gap:8px;margin-top:18px;}
+.btn{padding:9px 18px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:'Sora',sans-serif;transition:all 0.15s;}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-primary:hover{opacity:0.88;}
+.btn-ghost{background:var(--s2);color:var(--m2);border:1px solid var(--b);}
+.btn-ghost:hover{color:var(--t);}
+.btn-danger{background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3);}
+.btn-danger:hover{background:rgba(239,68,68,0.25);}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
 
-  /* Notes row */
-  .notes-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-bottom: 24px;
-  }
-  .notes-label { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 6px; }
-  .notes-input {
-    width: 100%;
-    background: transparent;
-    border: none;
-    color: var(--text);
-    font-family: 'Sora', sans-serif;
-    font-size: 13px;
-    font-weight: 300;
-    outline: none;
-    resize: none;
-    line-height: 1.5;
-    min-height: 48px;
-  }
-  .notes-input::placeholder { color: var(--muted); }
+/* Summary cards */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.card{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:16px;}
+.card-label{font-size:10px;color:var(--m);text-transform:uppercase;letter-spacing:0.08em;font-family:'DM Mono',monospace;margin-bottom:6px;}
+.card-val{font-size:20px;font-weight:600;letter-spacing:-0.02em;}
+.card-sub{font-size:11px;color:var(--m);margin-top:3px;font-family:'DM Mono',monospace;}
+.up{color:var(--green);}
+.dn{color:var(--red);}
+.neu{color:var(--m2);}
 
-  /* Submit */
-  .btn-submit {
-    width: 100%;
-    background: var(--accent);
-    border: none;
-    border-radius: 10px;
-    color: #fff;
-    font-family: 'Sora', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    padding: 14px;
-    cursor: pointer;
-    transition: opacity 0.15s, transform 0.1s;
-    letter-spacing: -0.01em;
-  }
-  .btn-submit:hover { opacity: 0.88; }
-  .btn-submit:active { transform: scale(0.99); }
-  .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+/* Holdings table */
+.table-wrap{background:var(--s);border:1px solid var(--b);border-radius:12px;overflow:hidden;margin-bottom:24px;}
+.table-head{padding:12px 16px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;}
+.table-head-title{font-size:12px;font-weight:600;}
+table{width:100%;border-collapse:collapse;}
+th{padding:10px 16px;text-align:left;font-size:10px;color:var(--m);text-transform:uppercase;letter-spacing:0.07em;font-family:'DM Mono',monospace;border-bottom:1px solid var(--b);font-weight:400;}
+td{padding:11px 16px;font-size:12px;border-bottom:1px solid rgba(34,37,54,0.6);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--s2);}
+.ticker-cell{font-family:'DM Mono',monospace;font-weight:500;font-size:13px;}
+.price-input-cell{width:110px;}
+.price-inp{background:var(--bg);border:1px solid var(--b);border-radius:6px;padding:6px 8px;color:var(--t);font-family:'DM Mono',monospace;font-size:12px;width:90px;text-align:right;outline:none;}
+.price-inp:focus{border-color:var(--blue);}
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-family:'DM Mono',monospace;font-weight:500;}
+.badge-up{background:var(--gd);color:var(--green);}
+.badge-dn{background:var(--rd);color:var(--red);}
+.badge-neu{background:rgba(107,114,128,0.15);color:var(--m2);}
+.status-tag{font-size:10px;padding:2px 6px;border-radius:4px;font-family:'DM Mono',monospace;}
+.tag-cap{background:rgba(245,158,11,0.12);color:var(--amber);}
+.tag-build{background:rgba(20,184,166,0.12);color:var(--teal);}
+.tag-hold{background:rgba(107,114,128,0.12);color:var(--m2);}
+.tag-trim{background:rgba(239,68,68,0.12);color:var(--red);}
+.tag-up{background:var(--bd);color:#a5b4fc;}
+.tag-house{background:var(--gd);color:var(--green);}
 
-  /* Status */
-  .status-msg {
-    margin-top: 14px;
-    padding: 12px 14px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-family: 'DM Mono', monospace;
-    display: none;
-  }
-  .status-msg.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: var(--green); display: block; }
-  .status-msg.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--red); display: block; }
-  .status-msg.loading { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc; display: block; }
+/* Transaction form */
+.tx-form{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:20px;margin-bottom:24px;}
+.tx-form h3{font-size:13px;font-weight:600;margin-bottom:16px;}
+.form-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
+.form-row-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
+.type-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.type-tab{padding:6px 14px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--b);background:var(--s2);color:var(--m2);transition:all 0.15s;font-family:'DM Mono',monospace;}
+.type-tab:hover{color:var(--t);}
+.type-tab.active-buy{background:var(--gd);border-color:rgba(34,197,94,0.3);color:var(--green);}
+.type-tab.active-sell{background:var(--rd);border-color:rgba(239,68,68,0.3);color:var(--red);}
+.type-tab.active-div{background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3);color:var(--amber);}
+.type-tab.active-cash{background:var(--bd);border-color:rgba(99,102,241,0.3);color:#a5b4fc;}
 
-  /* Summary bar */
-  .summary-bar {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-  .summary-chip {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-  }
-  .chip-label { color: var(--muted); display: block; margin-bottom: 2px; }
-  .chip-val { color: var(--text); font-size: 13px; font-weight: 500; }
+/* Transaction log */
+.tx-log{background:var(--s);border:1px solid var(--b);border-radius:12px;overflow:hidden;}
+.tx-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(34,37,54,0.6);font-size:12px;}
+.tx-item:last-child{border-bottom:none;}
+.tx-item:hover{background:var(--s2);}
+.tx-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.tx-icon-buy{background:var(--gd);}
+.tx-icon-sell{background:var(--rd);}
+.tx-icon-div{background:rgba(245,158,11,0.12);}
+.tx-icon-cash{background:var(--bd);}
+.tx-body{flex:1;}
+.tx-title{font-weight:500;font-size:12px;}
+.tx-sub{font-size:11px;color:var(--m);font-family:'DM Mono',monospace;margin-top:1px;}
+.tx-amount{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;text-align:right;}
+.tx-date{font-size:10px;color:var(--m);font-family:'DM Mono',monospace;text-align:right;min-width:60px;}
+.tx-del{padding:4px 8px;background:none;border:none;color:var(--m);cursor:pointer;border-radius:4px;font-size:13px;transition:color 0.15s;}
+.tx-del:hover{color:var(--red);}
+.tx-edit{padding:4px 8px;background:none;border:none;color:var(--m);cursor:pointer;border-radius:4px;font-size:11px;transition:color 0.15s;font-family:'DM Mono',monospace;}
+.tx-edit:hover{color:var(--blue);}
 
-  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+/* Charts */
+.charts-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px;}
+.chart-card{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:20px;}
+.chart-title{font-size:12px;font-weight:600;margin-bottom:16px;color:var(--m2);}
+.chart-wrap{position:relative;}
 
-  /* Config section */
-  .config-toggle {
-    font-size: 11px;
-    color: var(--muted);
-    font-family: 'DM Mono', monospace;
-    cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    background: none;
-    border: none;
-    padding: 0;
-    margin-bottom: 12px;
-  }
-  .config-section { display: none; }
-  .config-section.open { display: block; }
+/* Snapshot table */
+.snap-table{width:100%;border-collapse:collapse;}
+.snap-table th{padding:8px 12px;text-align:left;font-size:10px;color:var(--m);text-transform:uppercase;letter-spacing:0.06em;font-family:'DM Mono',monospace;border-bottom:1px solid var(--b);}
+.snap-table td{padding:9px 12px;font-size:11px;font-family:'DM Mono',monospace;border-bottom:1px solid rgba(34,37,54,0.4);}
+.snap-table tr:hover td{background:var(--s2);}
+
+/* Status bar */
+.status-bar{position:fixed;bottom:20px;right:24px;padding:10px 16px;border-radius:10px;font-size:12px;font-family:'DM Mono',monospace;z-index:50;display:none;max-width:320px;}
+.status-bar.show{display:block;}
+.status-ok{background:var(--gd);border:1px solid rgba(34,197,94,0.3);color:var(--green);}
+.status-err{background:var(--rd);border:1px solid rgba(239,68,68,0.3);color:var(--red);}
+.status-loading{background:var(--bd);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;}
+
+.section-sep{height:1px;background:var(--b);margin:20px 0;}
+.empty-state{padding:40px;text-align:center;color:var(--m);font-size:13px;}
+
+/* Save row */
+.save-row{display:flex;gap:10px;align-items:center;margin-top:16px;}
+.notes-inp{flex:1;background:var(--bg);border:1px solid var(--b);border-radius:8px;padding:9px 12px;color:var(--t);font-family:'Sora',sans-serif;font-size:12px;outline:none;}
+.notes-inp:focus{border-color:var(--blue);}
+.notes-inp::placeholder{color:var(--m);}
+
+/* Trigger alerts */
+.alerts{margin-bottom:20px;display:flex;flex-direction:column;gap:8px;}
+.alert{padding:10px 14px;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:10px;}
+.alert-add{background:var(--gd);border:1px solid rgba(34,197,94,0.25);}
+.alert-trim{background:var(--rd);border:1px solid rgba(239,68,68,0.25);}
+.alert-watch{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);}
+.alert-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dot-green{background:var(--green);}
+.dot-red{background:var(--red);}
+.dot-amber{background:var(--amber);}
+
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .cards{grid-template-columns:repeat(2,1fr);}
+  .charts-grid{grid-template-columns:1fr;}
+  .form-row{grid-template-columns:repeat(2,1fr);}
+}
 </style>
 </head>
 <body>
-<div class="container">
-
-  <div class="header">
-    <h1>Portfolio Updater</h1>
-    <p id="last-updated-label">Loading...</p>
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo">Danny<span>.</span>Portfolio</div>
+    <nav class="nav">
+      <button class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" onclick="showPage('update')" id="nav-update">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Daily Update
+      </button>
+      <button class="nav-item" onclick="showPage('transactions')" id="nav-transactions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+        Transactions
+      </button>
+      <button class="nav-item" onclick="showPage('chart')" id="nav-chart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Performance
+      </button>
+    </nav>
+    <button class="config-btn" onclick="openConfig()">⚙ GitHub config</button>
   </div>
 
-  <!-- GitHub config (collapsed by default if token saved) -->
-  <button class="config-toggle" onclick="toggleConfig()">⚙ GitHub config</button>
-  <div class="config-section" id="config-section">
-    <div class="setup-box">
-      <div class="setup-label">GitHub username</div>
-      <div class="setup-row" style="margin-bottom:10px">
-        <input class="setup-input" id="gh-user" placeholder="your_github_username">
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div class="last-sync" id="last-sync">–</div>
+    </div>
+    <div class="content">
+
+      <!-- DASHBOARD PAGE -->
+      <div class="page active" id="page-dashboard">
+        <div id="alerts-container" class="alerts"></div>
+        <div class="cards" id="summary-cards">
+          <div class="card"><div class="card-label">Total Value</div><div class="card-val" id="c-total">–</div><div class="card-sub" id="c-total-sub">–</div></div>
+          <div class="card"><div class="card-label">Day Move</div><div class="card-val" id="c-day">–</div><div class="card-sub" id="c-day-sub">–</div></div>
+          <div class="card"><div class="card-label">Unrealized P/L</div><div class="card-val" id="c-unreal">–</div><div class="card-sub" id="c-unreal-sub">Cash gains: –</div></div>
+          <div class="card"><div class="card-label">Cash</div><div class="card-val" id="c-cash">–</div><div class="card-sub" id="c-cash-sub">–</div></div>
+        </div>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-title">Portfolio value (30 days)</div>
+            <div class="chart-wrap"><canvas id="chart-value" height="160"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Sector allocation</div>
+            <div class="chart-wrap"><canvas id="chart-sector" height="160"></canvas></div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-head"><span class="table-head-title">Holdings</span></div>
+          <table>
+            <thead><tr>
+              <th>Ticker</th><th>Shares</th><th>Avg Cost</th><th>Price</th><th>Value</th><th>P/L</th><th>Weight</th><th>Status</th>
+            </tr></thead>
+            <tbody id="holdings-tbody"></tbody>
+          </table>
+        </div>
       </div>
-      <div class="setup-label">Repository name</div>
-      <div class="setup-row" style="margin-bottom:10px">
-        <input class="setup-input" id="gh-repo" placeholder="portfolio-tracker">
+
+      <!-- DAILY UPDATE PAGE -->
+      <div class="page" id="page-update">
+        <!-- Price update table -->
+        <div class="table-wrap" style="margin-bottom:20px;">
+          <div class="table-head"><span class="table-head-title">Update prices</span><span style="font-size:11px;color:var(--m);">Tab through fields</span></div>
+          <table>
+            <thead><tr><th>Ticker</th><th>Prev Price</th><th>New Price</th><th>P/L</th><th>Value</th></tr></thead>
+            <tbody id="update-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Transaction log -->
+        <div class="tx-form">
+          <h3>Log a transaction</h3>
+          <div class="type-tabs">
+            <button class="type-tab active-buy" id="tab-BUY" onclick="setTxType('BUY')">▲ Buy</button>
+            <button class="type-tab" id="tab-SELL" onclick="setTxType('SELL')">▼ Sell</button>
+            <button class="type-tab" id="tab-DIV" onclick="setTxType('DIV')">◆ Dividend</button>
+            <button class="type-tab" id="tab-CASH_IN" onclick="setTxType('CASH_IN')">+ Cash in</button>
+            <button class="type-tab" id="tab-CASH_OUT" onclick="setTxType('CASH_OUT')">− Cash out</button>
+          </div>
+          <div id="tx-fields"></div>
+          <button class="btn btn-primary" onclick="addTransaction()" style="margin-top:8px;">Add transaction</button>
+        </div>
+
+        <!-- Today's transactions -->
+        <div class="table-wrap" style="margin-bottom:20px;" id="today-tx-wrap">
+          <div class="table-head"><span class="table-head-title">Today's transactions</span></div>
+          <div id="today-tx-list"></div>
+        </div>
+
+        <!-- Notes + Save -->
+        <div class="save-row">
+          <input class="notes-inp" id="session-notes" placeholder="Session notes (optional)…">
+          <button class="btn btn-primary" id="btn-save" onclick="saveToGithub()">Save to GitHub</button>
+        </div>
       </div>
-      <div class="setup-label">JSON filename</div>
-      <div class="setup-row" style="margin-bottom:10px">
-        <input class="setup-input" id="gh-file" placeholder="danny_portfolio.json">
+
+      <!-- TRANSACTIONS PAGE -->
+      <div class="page" id="page-transactions">
+        <div class="tx-log" id="all-tx-log"></div>
       </div>
-      <div class="setup-label">Personal Access Token <span style="color:var(--amber)">(stored in browser only)</span></div>
-      <div class="setup-row">
-        <input class="setup-input" id="gh-token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-        <button class="btn-save-token" onclick="saveConfig()">Save</button>
+
+      <!-- PERFORMANCE PAGE -->
+      <div class="page" id="page-chart">
+        <div class="charts-grid" style="grid-template-columns:1fr 1fr;margin-bottom:24px;">
+          <div class="chart-card">
+            <div class="chart-title">Portfolio value history</div>
+            <canvas id="chart-perf-full" height="200"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Daily move %</div>
+            <canvas id="chart-daily-move" height="200"></canvas>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-head"><span class="table-head-title">Daily snapshots</span></div>
+          <table class="snap-table">
+            <thead><tr><th>Date</th><th>Total Value</th><th>Day Move</th><th>Unrealized</th><th>Cash%</th><th>Notes</th></tr></thead>
+            <tbody id="snap-tbody"></tbody>
+          </table>
+        </div>
       </div>
-      <div class="token-status" id="token-status"></div>
+
     </div>
   </div>
-
-  <!-- Date -->
-  <div class="date-row">
-    <span class="date-label">Update date</span>
-    <input class="date-input" type="date" id="update-date">
-  </div>
-
-  <!-- Summary chips (computed live) -->
-  <div class="summary-bar">
-    <div class="summary-chip">
-      <span class="chip-label">Portfolio est.</span>
-      <span class="chip-val" id="chip-total">—</span>
-    </div>
-    <div class="summary-chip">
-      <span class="chip-label">Unrealized P/L</span>
-      <span class="chip-val" id="chip-pl">—</span>
-    </div>
-    <div class="summary-chip">
-      <span class="chip-label">Cash</span>
-      <span class="chip-val" id="chip-cash">—</span>
-    </div>
-  </div>
-
-  <!-- Holdings -->
-  <div class="section-label">Holdings — enter today's closing price</div>
-  <div class="stock-grid" id="stock-grid">
-    <!-- injected by JS -->
-  </div>
-
-  <hr class="divider">
-
-  <!-- Notes -->
-  <div class="notes-box">
-    <div class="notes-label">Session notes (trades, observations)</div>
-    <textarea class="notes-input" id="session-notes" rows="3" placeholder="e.g. Bought SSI 500sh @26800. MWG dipped to 74k but didn't act."></textarea>
-  </div>
-
-  <!-- Submit -->
-  <button class="btn-submit" id="btn-submit" onclick="submitUpdate()">Save to GitHub</button>
-  <div class="status-msg" id="status-msg"></div>
-
 </div>
 
+<!-- Config Modal -->
+<div class="modal-overlay" id="config-modal">
+  <div class="modal">
+    <h3>GitHub Configuration</h3>
+    <div class="field"><label>GitHub username</label><input id="cfg-user" placeholder="dannyworkflow"></div>
+    <div class="field"><label>Repository name</label><input id="cfg-repo" placeholder="portfolio-tracker"></div>
+    <div class="field"><label>JSON filename</label><input id="cfg-file" placeholder="danny_portfolio.json"></div>
+    <div class="field"><label>Personal Access Token <span style="color:var(--amber);font-size:10px;">(stored in browser only)</span></label><input id="cfg-token" type="password" placeholder="ghp_xxxx…"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveConfig()">Save & connect</button>
+      <button class="btn btn-ghost" onclick="closeConfig()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Transaction Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <h3>Edit Transaction</h3>
+    <div class="field"><label>Date</label><input id="edit-date" type="date"></div>
+    <div class="field"><label>Type</label>
+      <select id="edit-type">
+        <option value="BUY">BUY</option><option value="SELL">SELL</option>
+        <option value="DIV">DIVIDEND</option><option value="CASH_IN">CASH IN</option><option value="CASH_OUT">CASH OUT</option>
+      </select>
+    </div>
+    <div class="field"><label>Ticker (if stock tx)</label><input id="edit-ticker" placeholder="e.g. MWG"></div>
+    <div class="field"><label>Shares</label><input id="edit-shares" type="number" placeholder="0"></div>
+    <div class="field"><label>Price / Amount (VND)</label><input id="edit-price" type="number" placeholder="0"></div>
+    <div class="field"><label>Notes</label><input id="edit-notes" placeholder="optional"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveEditTx()">Save changes</button>
+      <button class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="status-bar" id="status-bar"></div>
+
 <script>
-// ── Config ──────────────────────────────────────────────────
-const STORAGE_KEY = 'pf_config';
+// ── State ────────────────────────────────────────────────────
+let portfolio = null;
+let ghSha = null;
+let txType = 'BUY';
+let todayTx = []; // staged transactions for today
+let editingTxIdx = null; // index in portfolio.transactions array
 
-function loadConfig() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; }
-}
-function saveConfig() {
+// ── Config ───────────────────────────────────────────────────
+const CFG_KEY = 'pf_cfg_v2';
+function getConfig(){ try{ return JSON.parse(localStorage.getItem(CFG_KEY)||'{}'); }catch{ return {}; } }
+function saveConfig(){
   const cfg = {
-    user: document.getElementById('gh-user').value.trim(),
-    repo: document.getElementById('gh-repo').value.trim(),
-    file: document.getElementById('gh-file').value.trim() || 'danny_portfolio.json',
-    token: document.getElementById('gh-token').value.trim()
+    user: document.getElementById('cfg-user').value.trim(),
+    repo: document.getElementById('cfg-repo').value.trim(),
+    file: document.getElementById('cfg-file').value.trim()||'danny_portfolio.json',
+    token: document.getElementById('cfg-token').value.trim()
   };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
-  showTokenStatus(cfg.token);
-  toggleConfig(); // close after save
+  localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+  closeConfig();
+  loadPortfolio();
 }
-function showTokenStatus(token) {
-  const el = document.getElementById('token-status');
-  if (token) {
-    el.textContent = '✓ Token saved in browser';
-    el.className = 'token-status token-ok';
-  } else {
-    el.textContent = '⚠ No token — read-only mode';
-    el.className = 'token-status token-missing';
+function openConfig(){
+  const cfg = getConfig();
+  document.getElementById('cfg-user').value = cfg.user||'';
+  document.getElementById('cfg-repo').value = cfg.repo||'';
+  document.getElementById('cfg-file').value = cfg.file||'danny_portfolio.json';
+  document.getElementById('cfg-token').value = cfg.token||'';
+  document.getElementById('config-modal').classList.add('open');
+}
+function closeConfig(){ document.getElementById('config-modal').classList.remove('open'); }
+
+// ── Navigation ────────────────────────────────────────────────
+const PAGE_TITLES = {dashboard:'Dashboard',update:'Daily Update',transactions:'All Transactions',chart:'Performance'};
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  document.getElementById('page-title').textContent = PAGE_TITLES[id]||id;
+  if(id==='chart') renderPerfCharts();
+  if(id==='transactions') renderAllTx();
+}
+
+// ── Load from GitHub ──────────────────────────────────────────
+async function loadPortfolio(){
+  const cfg = getConfig();
+  if(!cfg.user||!cfg.repo){ openConfig(); return; }
+  showStatus('loading','Loading portfolio…');
+  const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file||'danny_portfolio.json'}`;
+  const headers = {'Accept':'application/vnd.github.v3+json'};
+  if(cfg.token) headers['Authorization']=`token ${cfg.token}`;
+  try{
+    const res = await fetch(url,{headers});
+    if(!res.ok) throw new Error(`GitHub ${res.status}`);
+    const j = await res.json();
+    ghSha = j.sha;
+    portfolio = JSON.parse(atob(j.content.replace(/\n/g,'')));
+    if(!portfolio.transactions) portfolio.transactions = [];
+    document.getElementById('last-sync').textContent = `synced ${portfolio.meta.last_updated}`;
+    renderDashboard();
+    renderUpdatePage();
+    showStatus('ok','Portfolio loaded ✓');
+  }catch(e){
+    showStatus('err','Load error: '+e.message);
   }
 }
-function toggleConfig() {
-  const s = document.getElementById('config-section');
-  s.classList.toggle('open');
-}
 
-// ── Portfolio data ──────────────────────────────────────────
-let portfolioData = null;
-let sha = null; // GitHub blob SHA needed for update
+// ── Render Dashboard ──────────────────────────────────────────
+function renderDashboard(){
+  if(!portfolio) return;
 
-async function fetchPortfolio() {
-  const cfg = loadConfig();
-  if (!cfg.user || !cfg.repo) {
-    document.getElementById('last-updated-label').textContent = 'Configure GitHub above first';
-    document.getElementById('config-section').classList.add('open');
-    fillConfigForm(cfg);
-    return;
-  }
-  fillConfigForm(cfg);
-  showTokenStatus(cfg.token);
-
-  const apiUrl = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file || 'danny_portfolio.json'}`;
-  const headers = { 'Accept': 'application/vnd.github.v3+json' };
-  if (cfg.token) headers['Authorization'] = `token ${cfg.token}`;
-
-  try {
-    const res = await fetch(apiUrl, { headers });
-    if (!res.ok) throw new Error(`GitHub API ${res.status}`);
-    const json = await res.json();
-    sha = json.sha;
-    portfolioData = JSON.parse(atob(json.content.replace(/\n/g, '')));
-    renderPortfolio();
-  } catch (e) {
-    document.getElementById('last-updated-label').textContent = 'Error loading: ' + e.message;
-  }
-}
-
-function fillConfigForm(cfg) {
-  document.getElementById('gh-user').value = cfg.user || '';
-  document.getElementById('gh-repo').value = cfg.repo || '';
-  document.getElementById('gh-file').value = cfg.file || 'danny_portfolio.json';
-  document.getElementById('gh-token').value = cfg.token || '';
-}
-
-function renderPortfolio() {
-  const p = portfolioData;
-  document.getElementById('last-updated-label').textContent = `last updated: ${p.meta.last_updated}`;
-
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('update-date').value = today;
-
-  const grid = document.getElementById('stock-grid');
-  grid.innerHTML = '';
-
-  p.holdings.forEach(h => {
-    const row = document.createElement('div');
-    row.className = 'stock-row';
-
-    const pl = ((h.current_price - h.avg_cost) / h.avg_cost * 100).toFixed(2);
-    const plClass = pl > 0 ? 'pl-pos' : pl < 0 ? 'pl-neg' : 'pl-flat';
-    const plText = (pl > 0 ? '+' : '') + pl + '%';
-
-    row.innerHTML = `
-      <span class="ticker">${h.ticker}</span>
-      <span class="prev-price">${h.current_price.toLocaleString()}</span>
-      <span class="arrow">→</span>
-      <input class="price-input" type="number" id="price-${h.ticker}"
-        value="${h.current_price}" min="1"
-        oninput="recalcRow('${h.ticker}', ${h.avg_cost}, ${h.shares})">
-      <span class="pl-badge ${plClass}" id="pl-${h.ticker}">${plText}</span>
-    `;
-    grid.appendChild(row);
-  });
-
-  recalcSummary();
-}
-
-function recalcRow(ticker, avgCost, shares) {
-  const input = document.getElementById(`price-${ticker}`);
-  const pl = ((input.value - avgCost) / avgCost * 100).toFixed(2);
-  const plEl = document.getElementById(`pl-${ticker}`);
-  plEl.textContent = (pl > 0 ? '+' : '') + pl + '%';
-  plEl.className = 'pl-badge ' + (pl > 0 ? 'pl-pos' : pl < 0 ? 'pl-neg' : 'pl-flat');
-  recalcSummary();
-}
-
-function recalcSummary() {
-  if (!portfolioData) return;
-  let stockVal = 0;
-  let totalCost = 0;
-  portfolioData.holdings.forEach(h => {
-    const priceEl = document.getElementById(`price-${h.ticker}`);
-    const price = priceEl ? parseFloat(priceEl.value) || h.current_price : h.current_price;
-    stockVal += price * h.shares;
+  // Compute live values
+  let stockVal=0, totalCost=0;
+  portfolio.holdings.forEach(h=>{
+    stockVal += h.current_price * h.shares;
     totalCost += h.avg_cost * h.shares;
   });
-  const cash = portfolioData.summary.cash;
+  const cash = portfolio.summary.cash;
   const total = stockVal + cash;
-  const unrealized = ((stockVal - totalCost) / totalCost * 100).toFixed(2);
+  const unrealAmt = stockVal - totalCost;
+  const unrealPct = (unrealAmt/totalCost*100);
+  const cashPct = cash/total*100;
+  const cashGains = (portfolio.summary.realized_gains_2026||0)+(portfolio.summary.dividends_2026||0);
 
-  document.getElementById('chip-total').textContent = (total / 1e9).toFixed(3) + 'B';
-  document.getElementById('chip-pl').textContent = (unrealized > 0 ? '+' : '') + unrealized + '%';
-  document.getElementById('chip-cash').textContent = (cash / 1e6).toFixed(1) + 'M';
+  // Day move
+  const log = portfolio.performance_log||[];
+  let dayMove = 0, prevVal = 0;
+  if(log.length>1){ prevVal=log[1].total_value; dayMove=(total-prevVal)/prevVal*100; }
+
+  // Cards
+  document.getElementById('c-total').textContent = fmtB(total);
+  document.getElementById('c-total-sub').textContent = `Stock ${fmtB(stockVal)} | Cash ${fmtM(cash)}`;
+  document.getElementById('c-day').innerHTML = `<span class="${dayMove>=0?'up':'dn'}">${dayMove>=0?'+':''}${dayMove.toFixed(2)}%</span>`;
+  document.getElementById('c-day-sub').textContent = prevVal?`vs ${fmtB(prevVal)}`:'–';
+  document.getElementById('c-unreal').innerHTML = `<span class="${unrealPct>=0?'up':'dn'}">${unrealPct>=0?'+':''}${unrealPct.toFixed(2)}%</span>`;
+  document.getElementById('c-unreal-sub').textContent = `Cash gains: ${fmtM(cashGains)}`;
+  document.getElementById('c-cash').textContent = fmtM(cash);
+  document.getElementById('c-cash-sub').textContent = `${cashPct.toFixed(1)}% of portfolio`;
+
+  // Trigger alerts
+  const ac = document.getElementById('alerts-container');
+  ac.innerHTML='';
+  portfolio.holdings.forEach(h=>{
+    if(h.ticker==='SSI'&&h.current_price<=27000){
+      ac.innerHTML+=`<div class="alert alert-add"><div class="alert-dot dot-green"></div><b>SSI ${h.current_price.toLocaleString()}</b> — at trigger (&lt;27k). Add 900-1000sh. Tier 1 deployment.</div>`;
+    }
+    if(h.ticker==='MWG'&&h.current_price<=76000){
+      ac.innerHTML+=`<div class="alert alert-add"><div class="alert-dot dot-green"></div><b>MWG ${h.current_price.toLocaleString()}</b> — in add zone (73-76k). +400-500sh.</div>`;
+    }
+    if(h.ticker==='PNJ'&&h.current_price>=69000){
+      ac.innerHTML+=`<div class="alert alert-trim"><div class="alert-dot dot-red"></div><b>PNJ ${h.current_price.toLocaleString()}</b> — trim trigger (69-70k). Sell 700sh.</div>`;
+    }
+    if(h.ticker==='HPG'&&h.current_price>=25500){
+      ac.innerHTML+=`<div class="alert alert-trim"><div class="alert-dot dot-red"></div><b>HPG ${h.current_price.toLocaleString()}</b> — trim trigger (25.5k+). Sell 500-700sh.</div>`;
+    }
+    if(h.ticker==='MBB'&&h.current_price<25000){
+      ac.innerHTML+=`<div class="alert alert-add"><div class="alert-dot dot-green"></div><b>MBB ${h.current_price.toLocaleString()}</b> — step-add zone (&lt;25k).</div>`;
+    }
+  });
+  // Upcoming dates
+  const today = new Date();
+  const jun17 = new Date('2026-06-17');
+  const daysTo = Math.ceil((jun17-today)/(1000*60*60*24));
+  if(daysTo>=0&&daysTo<=14){
+    ac.innerHTML+=`<div class="alert alert-watch"><div class="alert-dot dot-amber"></div><b>DMX subscription closes Jun 17</b> — ${daysTo} days. Oversubscription = MWG catalyst confirmed.</div>`;
+  }
+
+  // Holdings table
+  const tbody = document.getElementById('holdings-tbody');
+  tbody.innerHTML='';
+  portfolio.holdings.forEach(h=>{
+    const val = h.current_price*h.shares;
+    const plPct = (h.current_price-h.avg_cost)/h.avg_cost*100;
+    const wt = val/total*100;
+    const plCls = plPct>=0?'badge-up':'badge-dn';
+    const statusTag = getStatusTag(h.status);
+    tbody.innerHTML += `<tr>
+      <td class="ticker-cell">${h.ticker}</td>
+      <td style="font-family:'DM Mono',monospace">${h.shares.toLocaleString()}</td>
+      <td style="font-family:'DM Mono',monospace">${h.avg_cost.toLocaleString()}</td>
+      <td style="font-family:'DM Mono',monospace">${h.current_price.toLocaleString()}</td>
+      <td style="font-family:'DM Mono',monospace">${fmtM(val)}</td>
+      <td><span class="badge ${plCls}">${plPct>=0?'+':''}${plPct.toFixed(2)}%</span></td>
+      <td style="font-family:'DM Mono',monospace">${wt.toFixed(1)}%</td>
+      <td>${statusTag}</td>
+    </tr>`;
+  });
+
+  // Value chart (last 30 log entries)
+  const logSlice = [...(portfolio.performance_log||[])].reverse().slice(0,30);
+  const labels = logSlice.map(l=>l.date.slice(5));
+  const vals = logSlice.map(l=>l.total_value/1e9);
+  renderLineChart('chart-value', labels, vals, 'Portfolio (B VND)', '#6366f1');
+
+  // Sector donut
+  const sectors = {};
+  portfolio.holdings.forEach(h=>{ sectors[h.sector]=(sectors[h.sector]||0)+h.current_price*h.shares; });
+  const secColors = ['#6366f1','#22c55e','#f59e0b','#14b8a6','#ef4444','#8b5cf6','#ec4899'];
+  renderDonut('chart-sector', Object.keys(sectors), Object.values(sectors).map(v=>v/1e9), secColors);
 }
 
-// ── Submit ───────────────────────────────────────────────────
-async function submitUpdate() {
-  const cfg = loadConfig();
-  if (!cfg.token) { showStatus('error', 'No GitHub token saved. Configure above.'); return; }
-  if (!portfolioData) { showStatus('error', 'Portfolio data not loaded.'); return; }
+function getStatusTag(s){
+  const map = {
+    CAP_REACHED:`<span class="status-tag tag-cap">cap</span>`,
+    BUILDING:`<span class="status-tag tag-build">building</span>`,
+    HOLD:`<span class="status-tag tag-hold">hold</span>`,
+    TRIM_PENDING:`<span class="status-tag tag-trim">trim</span>`,
+    UPGRADED_CONVICTION:`<span class="status-tag tag-up">conviction+</span>`,
+    HOUSE_MONEY:`<span class="status-tag tag-house">house $</span>`,
+    HOLD_FOR_CATALYST:`<span class="status-tag tag-hold">catalyst</span>`,
+  };
+  return map[s]||`<span class="status-tag tag-hold">${s||'–'}</span>`;
+}
 
-  const btn = document.getElementById('btn-submit');
-  btn.disabled = true;
-  showStatus('loading', 'Saving to GitHub...');
+// ── Render Update Page ────────────────────────────────────────
+function renderUpdatePage(){
+  if(!portfolio) return;
+  const tbody = document.getElementById('update-tbody');
+  tbody.innerHTML='';
+  portfolio.holdings.forEach(h=>{
+    const plPct = (h.current_price-h.avg_cost)/h.avg_cost*100;
+    const val = h.current_price*h.shares;
+    tbody.innerHTML+=`<tr>
+      <td class="ticker-cell">${h.ticker}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--m)">${h.current_price.toLocaleString()}</td>
+      <td class="price-input-cell"><input class="price-inp" id="upd-${h.ticker}" type="number" value="${h.current_price}"
+        oninput="liveUpdateRow('${h.ticker}',${h.avg_cost},${h.shares})"></td>
+      <td><span class="badge ${plPct>=0?'badge-up':'badge-dn'}" id="upd-pl-${h.ticker}">${plPct>=0?'+':''}${plPct.toFixed(2)}%</span></td>
+      <td style="font-family:'DM Mono',monospace" id="upd-val-${h.ticker}">${fmtM(val)}</td>
+    </tr>`;
+  });
+  renderTxFields();
+  renderTodayTx();
+}
 
-  const date = document.getElementById('update-date').value;
+function liveUpdateRow(ticker, avgCost, shares){
+  const inp = document.getElementById('upd-'+ticker);
+  const price = parseFloat(inp.value)||0;
+  const pl = (price-avgCost)/avgCost*100;
+  const val = price*shares;
+  const plEl = document.getElementById('upd-pl-'+ticker);
+  plEl.textContent = (pl>=0?'+':'')+pl.toFixed(2)+'%';
+  plEl.className = 'badge '+(pl>=0?'badge-up':'badge-dn');
+  document.getElementById('upd-val-'+ticker).textContent = fmtM(val);
+}
+
+// ── Transaction form ──────────────────────────────────────────
+function setTxType(type){
+  txType = type;
+  ['BUY','SELL','DIV','CASH_IN','CASH_OUT'].forEach(t=>{
+    const btn = document.getElementById('tab-'+t);
+    btn.className = 'type-tab';
+    if(t===type){
+      if(t==='BUY') btn.classList.add('active-buy');
+      else if(t==='SELL') btn.classList.add('active-sell');
+      else if(t==='DIV') btn.classList.add('active-div');
+      else btn.classList.add('active-cash');
+    }
+  });
+  renderTxFields();
+}
+
+function renderTxFields(){
+  const f = document.getElementById('tx-fields');
+  const today = new Date().toISOString().split('T')[0];
+  const tickers = portfolio?portfolio.holdings.map(h=>`<option value="${h.ticker}">${h.ticker}</option>`).join(''):'';
+
+  if(txType==='BUY'||txType==='SELL'){
+    f.innerHTML=`
+      <div class="form-row">
+        <div class="field"><label>Date</label><input type="date" id="tx-date" value="${today}"></div>
+        <div class="field"><label>Ticker</label><select id="tx-ticker">${tickers}</select></div>
+        <div class="field"><label>Shares</label><input type="number" id="tx-shares" placeholder="500"></div>
+        <div class="field"><label>Price (VND)</label><input type="number" id="tx-price" placeholder="27000"></div>
+      </div>
+      <div class="field" style="max-width:300px"><label>Notes</label><input id="tx-notes" placeholder="e.g. FTSE trigger entry"></div>`;
+  } else if(txType==='DIV'){
+    f.innerHTML=`
+      <div class="form-row-3">
+        <div class="field"><label>Date</label><input type="date" id="tx-date" value="${today}"></div>
+        <div class="field"><label>Stock (or CASH)</label><select id="tx-ticker"><option value="CASH">CASH</option>${tickers}</select></div>
+        <div class="field"><label>Amount (VND)</label><input type="number" id="tx-price" placeholder="2375000"></div>
+      </div>
+      <div class="field" style="max-width:300px"><label>Notes</label><input id="tx-notes" placeholder="e.g. FPT Q1 dividend"></div>`;
+  } else {
+    const label = txType==='CASH_IN'?'Amount received (VND)':'Amount withdrawn (VND)';
+    f.innerHTML=`
+      <div class="form-row-3">
+        <div class="field"><label>Date</label><input type="date" id="tx-date" value="${today}"></div>
+        <div class="field"><label>${label}</label><input type="number" id="tx-price" placeholder="250000000"></div>
+        <div class="field"><label>Notes</label><input id="tx-notes" placeholder="e.g. Apartment sale proceeds"></div>
+      </div>`;
+  }
+}
+
+function addTransaction(){
+  const date = document.getElementById('tx-date')?.value || new Date().toISOString().split('T')[0];
+  const price = parseFloat(document.getElementById('tx-price')?.value)||0;
+  const shares = parseFloat(document.getElementById('tx-shares')?.value)||0;
+  const ticker = document.getElementById('tx-ticker')?.value||'';
+  const notes = document.getElementById('tx-notes')?.value||'';
+
+  if(!price){ showStatus('err','Amount/price is required'); return; }
+  if((txType==='BUY'||txType==='SELL')&&!shares){ showStatus('err','Shares required for buy/sell'); return; }
+
+  const tx = { id: Date.now(), date, type: txType, ticker, shares, price, notes };
+
+  // Apply to portfolio state immediately
+  applyTransaction(tx);
+  todayTx.push(tx);
+  if(!portfolio.transactions) portfolio.transactions=[];
+  portfolio.transactions.unshift(tx);
+
+  renderTodayTx();
+  renderUpdatePage();
+  renderDashboard();
+  showStatus('ok',`${txType} transaction added`);
+}
+
+function applyTransaction(tx){
+  if(!portfolio) return;
+  if(tx.type==='BUY'){
+    const h = portfolio.holdings.find(h=>h.ticker===tx.ticker);
+    if(h){
+      const newShares = h.shares + tx.shares;
+      h.avg_cost = Math.round((h.avg_cost*h.shares + tx.price*tx.shares)/newShares);
+      h.shares = newShares;
+      portfolio.summary.cash -= tx.price*tx.shares;
+    }
+  } else if(tx.type==='SELL'){
+    const h = portfolio.holdings.find(h=>h.ticker===tx.ticker);
+    if(h){
+      const proceeds = tx.price*tx.shares;
+      const realizedGain = (tx.price-h.avg_cost)*tx.shares;
+      h.shares -= tx.shares;
+      portfolio.summary.cash += proceeds;
+      portfolio.summary.realized_gains_2026 = (portfolio.summary.realized_gains_2026||0)+realizedGain;
+    }
+  } else if(tx.type==='DIV'){
+    portfolio.summary.cash += tx.price;
+    portfolio.summary.dividends_2026 = (portfolio.summary.dividends_2026||0)+tx.price;
+  } else if(tx.type==='CASH_IN'){
+    portfolio.summary.cash += tx.price;
+    portfolio.summary.pending_injection = Math.max(0,(portfolio.summary.pending_injection||0)-tx.price);
+  } else if(tx.type==='CASH_OUT'){
+    portfolio.summary.cash -= tx.price;
+  }
+}
+
+function reverseTransaction(tx){
+  // Reverse the effect of a transaction (for delete)
+  if(!portfolio) return;
+  if(tx.type==='BUY'){
+    const h = portfolio.holdings.find(h=>h.ticker===tx.ticker);
+    if(h&&h.shares>=tx.shares){
+      const prevShares = h.shares - tx.shares;
+      if(prevShares>0) h.avg_cost = Math.round((h.avg_cost*h.shares - tx.price*tx.shares)/prevShares);
+      h.shares = prevShares;
+      portfolio.summary.cash += tx.price*tx.shares;
+    }
+  } else if(tx.type==='SELL'){
+    const h = portfolio.holdings.find(h=>h.ticker===tx.ticker);
+    if(h){
+      const proceeds = tx.price*tx.shares;
+      const realizedGain = (tx.price-h.avg_cost)*tx.shares;
+      h.shares += tx.shares;
+      portfolio.summary.cash -= proceeds;
+      portfolio.summary.realized_gains_2026 = (portfolio.summary.realized_gains_2026||0)-realizedGain;
+    }
+  } else if(tx.type==='DIV'){
+    portfolio.summary.cash -= tx.price;
+    portfolio.summary.dividends_2026 = Math.max(0,(portfolio.summary.dividends_2026||0)-tx.price);
+  } else if(tx.type==='CASH_IN'){
+    portfolio.summary.cash -= tx.price;
+  } else if(tx.type==='CASH_OUT'){
+    portfolio.summary.cash += tx.price;
+  }
+}
+
+// ── Today's TX render ─────────────────────────────────────────
+function renderTodayTx(){
+  const wrap = document.getElementById('today-tx-list');
+  if(!todayTx.length){ wrap.innerHTML='<div class="empty-state">No transactions logged today</div>'; return; }
+  wrap.innerHTML = todayTx.map((tx,i)=>txRow(tx,i,'today')).join('');
+}
+
+function renderAllTx(){
+  const wrap = document.getElementById('all-tx-log');
+  if(!portfolio||!portfolio.transactions||!portfolio.transactions.length){
+    wrap.innerHTML='<div class="empty-state">No transactions recorded yet</div>'; return;
+  }
+  wrap.innerHTML = portfolio.transactions.map((tx,i)=>txRow(tx,i,'all')).join('');
+}
+
+function txRow(tx,i,ctx){
+  const icons = {BUY:'↑',SELL:'↓',DIV:'◆',CASH_IN:'+',CASH_OUT:'−'};
+  const iconCls = {BUY:'tx-icon-buy',SELL:'tx-icon-sell',DIV:'tx-icon-div',CASH_IN:'tx-icon-cash',CASH_OUT:'tx-icon-cash'};
+  const colors = {BUY:'up',SELL:'dn',DIV:'',CASH_IN:'up',CASH_OUT:'dn'};
+  const amt = (tx.type==='BUY'||tx.type==='SELL') ? tx.price*tx.shares : tx.price;
+  const title = (tx.type==='BUY'||tx.type==='SELL') ? `${tx.type} ${tx.ticker} × ${tx.shares.toLocaleString()} @ ${tx.price.toLocaleString()}`
+    : tx.type==='DIV' ? `Dividend — ${tx.ticker||'CASH'}`
+    : tx.type==='CASH_IN' ? 'Cash injection'
+    : 'Cash withdrawal';
+  const amtStr = `${tx.type==='CASH_OUT'||tx.type==='SELL'?'-':'+'}${fmtM(amt)}`;
+  return `<div class="tx-item">
+    <div class="tx-icon ${iconCls[tx.type]}">${icons[tx.type]}</div>
+    <div class="tx-body">
+      <div class="tx-title">${title}</div>
+      ${tx.notes?`<div class="tx-sub">${tx.notes}</div>`:''}
+    </div>
+    <div class="tx-amount ${colors[tx.type]}">${amtStr}</div>
+    <div class="tx-date">${tx.date.slice(5)}</div>
+    <button class="tx-edit" onclick="openEditTx(${i},'${ctx}')">edit</button>
+    <button class="tx-del" onclick="deleteTx(${i},'${ctx}')" title="Delete">×</button>
+  </div>`;
+}
+
+// ── Edit / Delete transaction ──────────────────────────────────
+function openEditTx(i, ctx){
+  editingTxIdx = {i, ctx};
+  const tx = ctx==='today' ? todayTx[i] : portfolio.transactions[i];
+  document.getElementById('edit-date').value = tx.date;
+  document.getElementById('edit-type').value = tx.type;
+  document.getElementById('edit-ticker').value = tx.ticker||'';
+  document.getElementById('edit-shares').value = tx.shares||0;
+  document.getElementById('edit-price').value = tx.price||0;
+  document.getElementById('edit-notes').value = tx.notes||'';
+  document.getElementById('edit-modal').classList.add('open');
+}
+function closeEditModal(){ document.getElementById('edit-modal').classList.remove('open'); editingTxIdx=null; }
+
+function saveEditTx(){
+  if(editingTxIdx===null) return;
+  const {i, ctx} = editingTxIdx;
+  const newTx = {
+    id: ctx==='today'?todayTx[i].id:portfolio.transactions[i].id,
+    date: document.getElementById('edit-date').value,
+    type: document.getElementById('edit-type').value,
+    ticker: document.getElementById('edit-ticker').value.toUpperCase(),
+    shares: parseFloat(document.getElementById('edit-shares').value)||0,
+    price: parseFloat(document.getElementById('edit-price').value)||0,
+    notes: document.getElementById('edit-notes').value
+  };
+  // Reverse old, apply new
+  const oldTx = ctx==='today'?todayTx[i]:portfolio.transactions[i];
+  reverseTransaction(oldTx);
+  applyTransaction(newTx);
+  if(ctx==='today') todayTx[i]=newTx;
+  // Also update in main transactions array
+  const mainIdx = portfolio.transactions.findIndex(t=>t.id===oldTx.id);
+  if(mainIdx>=0) portfolio.transactions[mainIdx]=newTx;
+  closeEditModal();
+  renderTodayTx();
+  renderAllTx();
+  renderDashboard();
+  showStatus('ok','Transaction updated');
+}
+
+function deleteTx(i, ctx){
+  const tx = ctx==='today'?todayTx[i]:portfolio.transactions[i];
+  reverseTransaction(tx);
+  if(ctx==='today'){
+    todayTx.splice(i,1);
+    const mainIdx = portfolio.transactions.findIndex(t=>t.id===tx.id);
+    if(mainIdx>=0) portfolio.transactions.splice(mainIdx,1);
+    renderTodayTx();
+  } else {
+    portfolio.transactions.splice(i,1);
+    renderAllTx();
+  }
+  renderDashboard();
+  showStatus('ok','Transaction deleted');
+}
+
+// ── Save to GitHub ────────────────────────────────────────────
+async function saveToGithub(){
+  const cfg = getConfig();
+  if(!cfg.token){ showStatus('err','No GitHub token. Check config.'); return; }
+  if(!portfolio){ showStatus('err','Portfolio not loaded.'); return; }
+
+  const btn = document.getElementById('btn-save');
+  btn.disabled=true;
+  showStatus('loading','Saving to GitHub…');
+
+  const today = new Date().toISOString().split('T')[0];
   const notes = document.getElementById('session-notes').value.trim();
 
-  // Update holdings prices
-  portfolioData.holdings.forEach(h => {
-    const input = document.getElementById(`price-${h.ticker}`);
-    if (input) {
-      const newPrice = parseInt(input.value);
-      if (!isNaN(newPrice) && newPrice > 0) {
-        h.pl_pct = parseFloat(((newPrice - h.avg_cost) / h.avg_cost * 100).toFixed(2));
-        h.current_price = newPrice;
+  // Apply price updates
+  portfolio.holdings.forEach(h=>{
+    const inp = document.getElementById('upd-'+h.ticker);
+    if(inp){ const p=parseInt(inp.value); if(p>0) h.current_price=p; }
+  });
+
+  // Recalculate summary
+  let stockVal=0, totalCost=0;
+  portfolio.holdings.forEach(h=>{ stockVal+=h.current_price*h.shares; totalCost+=h.avg_cost*h.shares; });
+  const total = stockVal+portfolio.summary.cash;
+  const unrealPct = (stockVal-totalCost)/totalCost*100;
+  const log = portfolio.performance_log||[];
+  const prevTotal = log[0]?log[0].total_value:total;
+  const dayMove = (total-prevTotal)/prevTotal*100;
+
+  portfolio.summary.total_value = Math.round(total);
+  portfolio.summary.stock_value = Math.round(stockVal);
+  portfolio.summary.cash_pct = parseFloat((portfolio.summary.cash/total*100).toFixed(2));
+  portfolio.summary.net_unrealized_pct = parseFloat(unrealPct.toFixed(2));
+  portfolio.meta.last_updated = today;
+
+  // Add performance log snapshot
+  portfolio.performance_log.unshift({
+    date: today,
+    total_value: Math.round(total),
+    day_move_pct: parseFloat(dayMove.toFixed(2)),
+    cash_pct: parseFloat((portfolio.summary.cash/total*100).toFixed(2)),
+    net_unrealized_pct: parseFloat(unrealPct.toFixed(2)),
+    notes: notes||(todayTx.length?`${todayTx.length} transaction(s)`: 'Daily price update')
+  });
+
+  // Push
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(portfolio, null, 2))));
+  const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file||'danny_portfolio.json'}`;
+  try{
+    const res = await fetch(url,{
+      method:'PUT',
+      headers:{'Authorization':`token ${cfg.token}`,'Content-Type':'application/json'},
+      body: JSON.stringify({message:`Portfolio update ${today}`,content,sha:ghSha})
+    });
+    if(!res.ok){ const e=await res.json(); throw new Error(e.message); }
+    const result = await res.json();
+    ghSha = result.content.sha;
+    todayTx=[];
+    document.getElementById('session-notes').value='';
+    document.getElementById('last-sync').textContent=`synced ${today}`;
+    renderDashboard();
+    renderUpdatePage();
+    showStatus('ok',`✓ Saved — ${today}`);
+  }catch(e){
+    showStatus('err','Save error: '+e.message);
+  }
+  btn.disabled=false;
+}
+
+// ── Performance charts ────────────────────────────────────────
+function renderPerfCharts(){
+  if(!portfolio) return;
+  const log = [...(portfolio.performance_log||[])].reverse();
+  const labels = log.map(l=>l.date.slice(5));
+  const vals = log.map(l=>l.total_value/1e9);
+  const moves = log.map(l=>l.day_move_pct||0);
+
+  renderLineChart('chart-perf-full', labels, vals, 'Value (B VND)', '#6366f1');
+  renderBarChart('chart-daily-move', labels, moves);
+
+  // Snapshot table
+  const tbody = document.getElementById('snap-tbody');
+  const logDesc = [...(portfolio.performance_log||[])];
+  tbody.innerHTML = logDesc.map(l=>{
+    const mc = l.day_move_pct>=0?'up':'dn';
+    const uc = l.net_unrealized_pct>=0?'up':'dn';
+    return `<tr>
+      <td>${l.date}</td>
+      <td>${fmtB(l.total_value)}</td>
+      <td class="${mc}">${l.day_move_pct>=0?'+':''}${(l.day_move_pct||0).toFixed(2)}%</td>
+      <td class="${uc}">${l.net_unrealized_pct>=0?'+':''}${(l.net_unrealized_pct||0).toFixed(2)}%</td>
+      <td>${(l.cash_pct||0).toFixed(1)}%</td>
+      <td style="color:var(--m);font-size:10px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.notes||''}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Chart helpers ─────────────────────────────────────────────
+const chartInstances = {};
+function renderLineChart(id, labels, data, label, color){
+  if(chartInstances[id]) chartInstances[id].destroy();
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  chartInstances[id] = new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{label,data,borderColor:color,backgroundColor:color+'22',fill:true,tension:0.3,pointRadius:2,pointHoverRadius:5,borderWidth:2}]},
+    options:{
+      responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>`${v.parsed.y.toFixed(3)}B`}}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#6b7280',font:{size:10},maxTicksLimit:8}},
+        y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#6b7280',font:{size:10},callback:v=>v.toFixed(2)+'B'}}
       }
     }
   });
+}
 
-  // Recalc portfolio summary
-  let stockVal = 0;
-  portfolioData.holdings.forEach(h => { stockVal += h.current_price * h.shares; });
-  const total = stockVal + portfolioData.summary.cash;
-  const stockCost = portfolioData.holdings.reduce((s, h) => s + h.avg_cost * h.shares, 0);
-  const unrealized = parseFloat(((stockVal - stockCost) / stockCost * 100).toFixed(2));
-
-  // Add performance log entry
-  const prevLog = portfolioData.performance_log[0];
-  const prevTotal = prevLog ? prevLog.total_value : total;
-  const dayMove = parseFloat(((total - prevTotal) / prevTotal * 100).toFixed(2));
-
-  portfolioData.performance_log.unshift({
-    date,
-    total_value: Math.round(total),
-    day_move_pct: dayMove,
-    cash_pct: parseFloat((portfolioData.summary.cash / total * 100).toFixed(2)),
-    net_unrealized_pct: unrealized,
-    notes: notes || 'Daily update'
-  });
-
-  portfolioData.meta.last_updated = date;
-  portfolioData.summary.total_value = Math.round(total);
-  portfolioData.summary.stock_value = Math.round(stockVal);
-  portfolioData.summary.cash_pct = parseFloat((portfolioData.summary.cash / total * 100).toFixed(2));
-  portfolioData.summary.net_unrealized_pct = unrealized;
-
-  // Push to GitHub
-  const content = btoa(unescape(encodeURIComponent(JSON.stringify(portfolioData, null, 2))));
-  const apiUrl = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file || 'danny_portfolio.json'}`;
-
-  try {
-    const res = await fetch(apiUrl, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${cfg.token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: `Portfolio update ${date}`,
-        content,
-        sha
-      })
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message || `Status ${res.status}`);
+function renderBarChart(id, labels, data){
+  if(chartInstances[id]) chartInstances[id].destroy();
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  chartInstances[id] = new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:data.map(v=>v>=0?'rgba(34,197,94,0.5)':'rgba(239,68,68,0.5)'),borderColor:data.map(v=>v>=0?'#22c55e':'#ef4444'),borderWidth:1}]},
+    options:{
+      responsive:true,plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#6b7280',font:{size:10},maxTicksLimit:8}},
+        y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#6b7280',font:{size:10},callback:v=>v.toFixed(1)+'%'}}
+      }
     }
-    const result = await res.json();
-    sha = result.content.sha;
-    showStatus('success', `✓ Saved to GitHub — ${date}. Ready for Claude analysis.`);
-    document.getElementById('session-notes').value = '';
-  } catch (e) {
-    showStatus('error', 'Error: ' + e.message);
-  }
-  btn.disabled = false;
+  });
 }
 
-function showStatus(type, msg) {
-  const el = document.getElementById('status-msg');
-  el.className = 'status-msg ' + type;
+function renderDonut(id, labels, data, colors){
+  if(chartInstances[id]) chartInstances[id].destroy();
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  chartInstances[id] = new Chart(ctx,{
+    type:'doughnut',
+    data:{labels,datasets:[{data,backgroundColor:colors,borderColor:'#0d0f12',borderWidth:3}]},
+    options:{
+      responsive:true,cutout:'65%',
+      plugins:{legend:{position:'right',labels:{color:'#9ca3af',font:{size:10},boxWidth:10,padding:8}},tooltip:{callbacks:{label:v=>`${v.label}: ${v.parsed.toFixed(2)}B`}}}
+    }
+  });
+}
+
+// ── Utilities ─────────────────────────────────────────────────
+function fmtB(n){ return (n/1e9).toFixed(3)+'B'; }
+function fmtM(n){ return n>=1e9?fmtB(n):(n/1e6).toFixed(1)+'M'; }
+
+let statusTimer;
+function showStatus(type, msg){
+  const el = document.getElementById('status-bar');
   el.textContent = msg;
+  el.className = 'status-bar show status-'+({'ok':'ok','err':'err','loading':'loading'}[type]||'ok');
+  clearTimeout(statusTimer);
+  if(type!=='loading') statusTimer = setTimeout(()=>el.classList.remove('show'), 3500);
 }
 
-// ── Init ─────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', fetchPortfolio);
+// ── Init ──────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded',()=>{
+  const cfg = getConfig();
+  if(cfg.user&&cfg.repo) loadPortfolio();
+  else openConfig();
+  renderTxFields();
+  setTxType('BUY');
+});
 </script>
 </body>
 </html>
