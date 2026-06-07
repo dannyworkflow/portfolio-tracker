@@ -286,6 +286,14 @@
       "day_move_pct": 0,
       "cash_pct": 2.14,
       "net_unrealized_pct": -1.97,
+      "notes": "Increase 250M cash injection"
+    },
+    {
+      "date": "2026-06-07",
+      "total_value": 1102905470,
+      "day_move_pct": 0,
+      "cash_pct": 2.14,
+      "net_unrealized_pct": -1.97,
       "notes": "Daily update"
     },
     {
