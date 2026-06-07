@@ -5,20 +5,18 @@
     "portfolio_target_return": "20-30%",
     "notes": "Update prices daily. Triggers and watchlist update only when changed."
   },
-
   "summary": {
-    "total_value": 1102905470,
+    "total_value": 1152905470,
     "stock_value": 1079290000,
-    "cash": 23615470,
-    "cash_pct": 2.14,
-    "net_unrealized_pct": -1.54,
+    "cash": 73615470,
+    "cash_pct": 6.39,
+    "net_unrealized_pct": -1.97,
     "realized_gains_2026": 18540000,
     "dividends_2026": 4750000,
     "total_cash_gains_2026": 23290000,
-    "pending_injection": 250000000,
+    "pending_injection": 200000000,
     "injection_eta": "2026-06-09"
   },
-
   "holdings": [
     {
       "ticker": "HPG",
@@ -43,7 +41,7 @@
       "current_price": 75000,
       "sector": "Technology",
       "thesis": "AI Factory tailwind, defensive lowest-beta, Q2 earnings approaching",
-      "weight_pct": 17.00,
+      "weight_pct": 17,
       "pl_pct": 1.64,
       "status": "HOLD",
       "triggers": {
@@ -145,7 +143,7 @@
       "current_price": 27000,
       "sector": "Securities",
       "thesis": "FTSE Russell upgrade Sep 21 2026. ROE 13.48%, P/B 1.74. Daiwa strategic partner.",
-      "weight_pct": 4.90,
+      "weight_pct": 4.9,
       "pl_pct": -2.69,
       "status": "BUILDING",
       "triggers": {
@@ -174,7 +172,6 @@
       }
     }
   ],
-
   "watchlist": [
     {
       "ticker": "CTI",
@@ -220,36 +217,127 @@
       "status": "CONDITIONAL"
     }
   ],
-
   "deployment_plan": {
     "incoming_250M": {
       "tier1_immediate": [
-        { "stock": "SSI", "condition": "price < 27000", "amount": 25000000, "action": "+900-1000sh to reach 7% weight" },
-        { "stock": "CTI", "condition": "price 18500-19500", "amount": 40000000, "action": "starter position 2000sh" }
+        {
+          "stock": "SSI",
+          "condition": "price < 27000",
+          "amount": 25000000,
+          "action": "+900-1000sh to reach 7% weight"
+        },
+        {
+          "stock": "CTI",
+          "condition": "price 18500-19500",
+          "amount": 40000000,
+          "action": "starter position 2000sh"
+        }
       ],
       "tier2_conditional": [
-        { "stock": "MWG", "condition": "price 73000-76000", "amount": 30000000, "action": "+400-500sh to reach 14-15% weight" },
-        { "stock": "FPT", "condition": "price 71000-73000", "amount": 22000000, "action": "+300sh" }
+        {
+          "stock": "MWG",
+          "condition": "price 73000-76000",
+          "amount": 30000000,
+          "action": "+400-500sh to reach 14-15% weight"
+        },
+        {
+          "stock": "FPT",
+          "condition": "price 71000-73000",
+          "amount": 22000000,
+          "action": "+300sh"
+        }
       ],
       "cash_buffer_target_pct": 12,
       "cash_buffer_amount": 165000000,
       "staging": "3-4 weeks, not lump sum"
     }
   },
-
   "key_dates": [
-    { "date": "2026-06-17", "event": "DMX subscription closes", "action": "Check oversubscription = MWG catalyst confirmed" },
-    { "date": "2026-07-01", "event": "Q2 earnings season begins", "action": "Watch MSN, MWG BHX" },
-    { "date": "2026-08-01", "event": "Q2 MWG/BHX result expected", "action": ">400B BHX NPAT = thesis confirmed. <300B = review" },
-    { "date": "2026-09-21", "event": "FTSE Russell upgrade effective", "action": "Trim SSI into strength before this date" },
-    { "date": "2026-Q3", "event": "DMX HOSE listing", "action": "Monitor listing day vs IPO price 80000" }
+    {
+      "date": "2026-06-17",
+      "event": "DMX subscription closes",
+      "action": "Check oversubscription = MWG catalyst confirmed"
+    },
+    {
+      "date": "2026-07-01",
+      "event": "Q2 earnings season begins",
+      "action": "Watch MSN, MWG BHX"
+    },
+    {
+      "date": "2026-08-01",
+      "event": "Q2 MWG/BHX result expected",
+      "action": ">400B BHX NPAT = thesis confirmed. <300B = review"
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FTSE Russell upgrade effective",
+      "action": "Trim SSI into strength before this date"
+    },
+    {
+      "date": "2026-Q3",
+      "event": "DMX HOSE listing",
+      "action": "Monitor listing day vs IPO price 80000"
+    }
   ],
-
   "performance_log": [
-    { "date": "2026-06-05", "total_value": 1102905470, "day_move_pct": -0.43, "cash_pct": 2.14, "net_unrealized_pct": -1.54, "notes": "250M injection delayed to next week" },
-    { "date": "2026-06-04", "total_value": 1107700000, "day_move_pct": -0.51, "cash_pct": 2.13, "net_unrealized_pct": -1.50, "notes": "ACB trim 1k@26450, HPG+1k@24050, SIP+200@50800" },
-    { "date": "2026-06-03", "total_value": 1113400000, "day_move_pct": 1.61,  "cash_pct": 2.80, "net_unrealized_pct": -1.42, "notes": "ACB trim 1k@25550, MBB add 500@24850. Alpha +2pp vs market" },
-    { "date": "2026-06-02", "total_value": 1103300000, "day_move_pct": 0.77,  "cash_pct": 1.64, "net_unrealized_pct": -0.96, "notes": "SSI 2000sh NEW @27747. Market -1.2%. Alpha +1.97pp" },
-    { "date": "2026-05-30", "total_value": 1094900000, "day_move_pct": -1.23, "cash_pct": 8.76, "net_unrealized_pct": -2.74, "notes": "VND full exit, MBB+HPG add" }
+    {
+      "date": "2026-06-07",
+      "total_value": 1152905470,
+      "day_move_pct": 4.53,
+      "cash_pct": 6.39,
+      "net_unrealized_pct": -1.97,
+      "notes": "1 transaction(s)"
+    },
+    {
+      "date": "2026-06-05",
+      "total_value": 1102905470,
+      "day_move_pct": -0.43,
+      "cash_pct": 2.14,
+      "net_unrealized_pct": -1.54,
+      "notes": "250M injection delayed to next week"
+    },
+    {
+      "date": "2026-06-04",
+      "total_value": 1107700000,
+      "day_move_pct": -0.51,
+      "cash_pct": 2.13,
+      "net_unrealized_pct": -1.5,
+      "notes": "ACB trim 1k@26450, HPG+1k@24050, SIP+200@50800"
+    },
+    {
+      "date": "2026-06-03",
+      "total_value": 1113400000,
+      "day_move_pct": 1.61,
+      "cash_pct": 2.8,
+      "net_unrealized_pct": -1.42,
+      "notes": "ACB trim 1k@25550, MBB add 500@24850. Alpha +2pp vs market"
+    },
+    {
+      "date": "2026-06-02",
+      "total_value": 1103300000,
+      "day_move_pct": 0.77,
+      "cash_pct": 1.64,
+      "net_unrealized_pct": -0.96,
+      "notes": "SSI 2000sh NEW @27747. Market -1.2%. Alpha +1.97pp"
+    },
+    {
+      "date": "2026-05-30",
+      "total_value": 1094900000,
+      "day_move_pct": -1.23,
+      "cash_pct": 8.76,
+      "net_unrealized_pct": -2.74,
+      "notes": "VND full exit, MBB+HPG add"
+    }
+  ],
+  "transactions": [
+    {
+      "id": 1780820788412,
+      "date": "2026-06-07",
+      "type": "CASH_IN",
+      "ticker": "",
+      "shares": 0,
+      "price": 50000000,
+      "notes": "new cash increase"
+    }
   ]
 }
